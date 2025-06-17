@@ -7,7 +7,10 @@ import mx.edu.utez.AplicacionDePrincipios.models.CedeRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class CedeService {
@@ -32,11 +35,18 @@ public class CedeService {
     public ResponseEntity<ApiResponse> save(CedeEntity cede) {
         if (cede.getEstado() == null || cede.getMunicipio() == null)
             return ResponseEntity.badRequest().body(new ApiResponse(null, "Estado y municipio son obligatorios", false));
+
         CedeEntity saved = repository.save(cede);
-        // se genera clave después de guardar
+
+        String fecha = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+        String random = String.format("%04d", new Random().nextInt(10_000));
+        saved.setClave("C" + saved.getId() + "-" + fecha + "-" + random);
+
         saved = repository.save(saved);
+
         return ResponseEntity.ok(new ApiResponse(saved, "Cede registrada correctamente", true));
     }
+
 
     public ResponseEntity<ApiResponse> update(Long id, CedeEntity cede) {
         if (!repository.existsById(id))
